@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Gobang</title>
+    <style type="text/css">
+        .Chessboard {
+            background: black;
+        }
+
+        .Chessboard, .Chessboard td {
+            border: 1px solid black;
+        }
+
+        .Chessboard td {
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            background: antiquewhite;
+        }
+
+        .Chessboard td:before {
+            content: '';
+            width: 23px;
+            height: 23px;
+            -webkit-border-radius: 100%;
+            -moz-border-radius: 100%;
+            border-radius: 100%;
+        }
+
+        /* true 为黑色 黑子*/
+        .Chessboard td[val='true']:before {
+            background: black;
+            border: 1px solid white;
+            display: block;
+        }
+
+        /* false 为白色 白子*/
+        .Chessboard td[val='false']:before {
+            background: white;
+            border: 1px solid black;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<div id="container">
+
+</div>
+<script type="text/javascript">
+    window.Gobang = function (elementId, options) {
+        this.target = document.getElementById(elementId);
+        this.size = options && options.size ? options.size : 20;
+        this.history = []; //记录,方便做悔棋
+        if (!this.target) return false;
+
+        /**
+         * 重设棋盘清空历史记录
+         */
+        this.resetChessboard = function () {
+            this.history = []; //清空记录值
+            this.target.innerHTML = ""; //清空棋盘ui
+
+            //重新构建棋盘
+            var boardTable = document.createElement("table");
+            boardTable.className = "Chessboard";
+            for (var row = 0; row < this.size; row++) {
+                var boardRow = document.createElement("tr");
+                for (var cell = 0; cell < this.size; cell++) {
+                    var boardCell = document.createElement("td");
+                    var self = this;
+                    boardCell.setAttribute("x", row + 1);
+                    boardCell.setAttribute("y", cell + 1);
+                    //为单元格添加事件
+                    boardCell.addEventListener("click", function (e) {
+                        if (e.target.getAttribute('val') == null) { //位置未有放置棋子才可以放置
+                            var val = self.history.length ? !self.history[self.history.length - 1].val : true; //根据历史记录获取当前为黑子还是白子，默认黑子先走
+
+                            e.target.setAttribute("val", val);//点击位置放置棋子
+
+                            self.history.push({ //加入历史记录
+                                x: Number(e.target.getAttribute('x')),
+                                y: Number(e.target.getAttribute('y')),
+                                val: val
+                            });
+
+                            if (self.checkWin()) {
+                                //判断当前下的棋子是否触发胜利
+                                alert(val ? "黑子胜利" : "白子胜利");
+                            }
+                        }
+                    });
+                    boardRow.appendChild(boardCell);
+                }
+                boardTable.appendChild(boardRow);
+            }
+            this.target.appendChild(boardTable);
+        };
+
+        /**
+         * 基于最后一步棋子，检查是否胜利
+         */
+        this.checkWin = function () {
+            //检查各方向连续出现同一颜色的次数
+            var countX = this.checkContinuous('x', 1) + this.checkContinuous('x', -1);
+            var countY = this.checkContinuous('y', 1) + this.checkContinuous('y', -1);
+            var countZ = this.checkContinuous('z', 1) + this.checkContinuous('z', -1);
+            return countX >= 4 || countY >= 4 || countZ >= 4;
+        };
+
+        /**
+         * 计算一个方向连续出现同一颜色的总数
+         * @param rule x,y,z 代表 横竖斜
+         * @param direction -1,1 代表正负方向
+         * @returns {number} 返回连续出现相同总数
+         */
+        this.checkContinuous = function (rule, direction) {
+            var ruleCount = 0;
+            var last = this.history[this.history.length - 1];//获取最后一步
+            for (var i = 1; i <= 5; i++) {
+                if (this.history.find(function (e) {
+                    switch (rule) {
+                        case 'x':
+                            return (direction > 0 ? e.x === last.x + i : e.x === last.x - i) && e.y === last.y && e.val === last.val;
+                        case 'y':
+                            return (direction > 0 ? e.y === last.y + i : e.y === last.y - i) && e.x === last.x && e.val === last.val;
+                        case 'z':
+                            return (direction > 0 ? e.y === last.y + i : e.y === last.y - i) && (direction > 0 ? e.x === last.x + i : e.x === last.x - i) && e.val === last.val;
+                        default:
+                            return false;
+                    }
+                })) {
+                    ruleCount++;
+                } else {
+                    break;
+                }
+            }
+            return ruleCount;
+        };
+
+        this.resetChessboard();//初始化
+
+        return this;
+    };
+
+
+    //绑定元素，构建对象
+    new Gobang("container", {
+        size: 20 //棋盘大小
+    });
+</script>
+</body>
+</html>
