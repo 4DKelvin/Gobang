@@ -104,13 +104,14 @@
             //检查各方向连续出现同一颜色的次数
             var countX = this.checkContinuous('x', 1) + this.checkContinuous('x', -1);
             var countY = this.checkContinuous('y', 1) + this.checkContinuous('y', -1);
-            var countZ = this.checkContinuous('z', 1) + this.checkContinuous('z', -1);
-            return countX >= 4 || countY >= 4 || countZ >= 4;
+            var countZa = this.checkContinuous('za', 1) + this.checkContinuous('za', -1);
+            var countZb = this.checkContinuous('zb', 1) + this.checkContinuous('zb', -1);
+            return countX >= 4 || countY >= 4 || countZa >= 4 || countZb >= 4;
         };
 
         /**
          * 计算一个方向连续出现同一颜色的总数
-         * @param rule x,y,z 代表 横竖斜
+         * @param rule x,y,za,zb 代表 横竖斜
          * @param direction -1,1 代表正负方向
          * @returns {number} 返回连续出现相同总数
          */
@@ -124,8 +125,10 @@
                             return (direction > 0 ? e.x === last.x + i : e.x === last.x - i) && e.y === last.y && e.val === last.val;
                         case 'y':
                             return (direction > 0 ? e.y === last.y + i : e.y === last.y - i) && e.x === last.x && e.val === last.val;
-                        case 'z':
+                        case 'za'://正斜
                             return (direction > 0 ? e.y === last.y + i : e.y === last.y - i) && (direction > 0 ? e.x === last.x + i : e.x === last.x - i) && e.val === last.val;
+                        case 'zb'://反斜
+                            return (direction > 0 ? e.y === last.y + i : e.y === last.y - i) && (direction > 0 ? e.x === last.x - i : e.x === last.x + i) && e.val === last.val;
                         default:
                             return false;
                     }
